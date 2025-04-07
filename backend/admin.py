@@ -12,9 +12,9 @@ class CustomUserAdmin(UserAdmin):
 
     model = CustomUser
 
-    list_display = ('first_name', 'last_name', 'email', 'gender', 'dob',  'image_tag', 'is_staff', 'is_active',)
+    list_display = ('first_name', 'last_name', 'email', 'gender', 'phone_no', 'dob',  'image_tag', 'is_staff', 'is_active',)
 
-    list_filter = ('first_name', 'last_name', 'email', 'gender', 'is_staff', 'is_active',)
+    list_filter = ('first_name', 'last_name', 'email', 'gender', 'phone_no', 'is_staff', 'is_active',)
 
     fieldsets = (
         (None, {'fields': ('first_name', 'last_name', 'email', 'gender', 'dob', 'password')}),

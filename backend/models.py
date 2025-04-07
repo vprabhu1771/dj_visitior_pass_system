@@ -49,8 +49,10 @@ class CustomUser(AbstractUser):
 
     dob = models.DateField(null=True, blank=True)
 
+    phone_no = models.CharField(max_length=255)
+
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'gender', 'dob']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'gender', 'dob', 'phone_no']
     objects = CustomUserManager()
 
     def __str__(self):
