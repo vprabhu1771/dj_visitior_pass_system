@@ -3,6 +3,27 @@ from django.shortcuts import render
 from .utils import generate_qr_code
 from backend.models import CustomUser
 
+import cv2
+from django.http import StreamingHttpResponse
+
+def gen_frames():
+    cap = cv2.VideoCapture(0)  # 0 = default webcam
+
+    while True:
+        success, frame = cap.read()
+        if not success:
+            break
+        else:
+            # Convert frame to JPEG
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+def webcam_feed(request):
+    return StreamingHttpResponse(gen_frames(), content_type='multipart/x-mixed-replace; boundary=frame')
+
 
 def home(request):
     user = None
