@@ -19,3 +19,7 @@ python manage.py startapp frontend
 ```
 pip install qrcode
 ```
+
+```
+http://127.0.0.1:8000/qr/?id=1
+```
