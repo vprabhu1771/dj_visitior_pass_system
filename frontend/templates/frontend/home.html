@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Search</title>
+</head>
+<body>
+    <h1>Search User by Phone Number</h1>
+    <form method="get">
+        <input type="text" name="phone_no" placeholder="Enter phone number" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if user %}
+        <h2>Search Result:</h2>
+        <p><strong>ID:</strong> {{ user.id }}</p>
+        <img src="{{ user.image.url }}" width="250" height="250">
+        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Phone:</strong> {{ user.phone_no }}</p>
+        <img src="{% url 'qr-code' %}?id={{ user.id }}" alt="QR Code">
+    {% elif request.GET.phone_no %}
+        <p style="color: red;">No user found with that phone number.</p>
+    {% endif %}
+</body>
+</html>
