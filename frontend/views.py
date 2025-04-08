@@ -1,5 +1,8 @@
+from django.contrib import messages
 from django.http import HttpResponse, Http404
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+
+from backend.forms import CustomUserCreationForm
 from .utils import generate_qr_code
 from backend.models import CustomUser
 
@@ -14,6 +17,8 @@ def gen_frames():
         if not success:
             break
         else:
+            # flip camera
+            frame = cv2.flip(frame, 1)
             # Convert frame to JPEG
             ret, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
@@ -49,3 +54,17 @@ def qr_code_view(request):
 
     qr_image = generate_qr_code(data)
     return HttpResponse(qr_image, content_type='image/png')
+
+
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            # return redirect('home')  # or any success URL
+            messages.success(request, "User registered successfully!")
+            return redirect('register')  # 👈 redirect back to the register page
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, "frontend/register.html", {'form': form})
