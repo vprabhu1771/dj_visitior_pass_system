@@ -1,5 +1,6 @@
+import numpy as np
 from django.contrib import messages
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
 
 from backend.forms import CustomUserCreationForm
@@ -68,3 +69,37 @@ def register(request):
         form = CustomUserCreationForm()
 
     return render(request, "frontend/register.html", {'form': form})
+
+
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def decode_qr_from_image(request):
+    if request.method == "POST" and request.FILES.get("image"):
+        image_file = request.FILES["image"]
+
+        # Convert to OpenCV image
+        file_bytes = image_file.read()
+        np_arr = np.frombuffer(file_bytes, np.uint8)
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        detector = cv2.QRCodeDetector()
+        data, _, _ = detector.detectAndDecode(img)
+
+        if data:
+            try:
+                user_id = int(data.split("ID:")[1].split("\n")[0].strip())
+                user = CustomUser.objects.get(id=user_id)
+                return JsonResponse({
+                    "id": user.id,
+                    "name": f"{user.first_name} {user.last_name}",
+                    "email": user.email,
+                    "phone": user.phone_no,
+                    "image": user.image.url
+                })
+            except (ValueError, IndexError, CustomUser.DoesNotExist):
+                return JsonResponse({"error": "User not found"}, status=404)
+
+        return JsonResponse({"error": "No QR code detected"}, status=400)
+    return JsonResponse({"error": "Invalid request"}, status=400)
