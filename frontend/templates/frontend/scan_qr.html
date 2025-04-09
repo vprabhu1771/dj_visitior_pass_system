@@ -1,0 +1,71 @@
+{% extends 'frontend/layout/app.html' %}
+
+{% block title %}
+
+Home
+
+{% endblock %}
+
+
+{% block content %}
+
+    <h2>Scan QR Code</h2>
+    <video id="live-webcam" width="640" height="480" autoplay></video>
+    <br>
+    <button onclick="captureAndSendQR()">📷 Scan QR from Webcam</button>
+
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        const video = document.getElementById("live-webcam");
+
+        // Start webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                alert("Camera access denied: " + err);
+            });
+
+        function captureAndSendQR() {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append("image", blob, "frame.jpg");
+
+                fetch("{% url 'decode-qr' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById("result").innerHTML = `<p style="color:red;">${data.error}</p>`;
+                    } else {
+                        document.getElementById("result").innerHTML = `
+                            <h2>QR Scan Result</h2>
+                            <p><strong>ID:</strong> ${data.id}</p>
+                            <img src="${data.image}" width="250" height="250">
+                            <p><strong>Name:</strong> ${data.name}</p>
+                            <p><strong>Email:</strong> ${data.email}</p>
+                            <p><strong>Phone:</strong> ${data.phone}</p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+            }, 'image/jpeg');
+        }
+    </script>
+
+{% endblock %}

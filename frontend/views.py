@@ -71,6 +71,19 @@ def register(request):
     return render(request, "frontend/register.html", {'form': form})
 
 
+def scan_qr(request):
+    return render(request, "frontend/scan_qr.html")
+
+def search(request):
+    user = None
+    query = request.GET.get('phone_no')
+    if query:
+        try:
+            user = CustomUser.objects.get(phone_no=query)
+        except CustomUser.DoesNotExist:
+            user = None
+    return render(request, "frontend/search.html", {"user": user})
+
 from django.views.decorators.csrf import csrf_exempt
 import json
 
