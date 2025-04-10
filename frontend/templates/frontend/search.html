@@ -1,32 +1,38 @@
 {% extends 'frontend/layout/app.html' %}
 
 {% block title %}
-
-Home
-
+    Home
 {% endblock %}
 
-
 {% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4 text-center">Search User by Phone Number</h1>
 
-    <h1>Search User by Phone Number</h1>
+            <form method="get" class="input-group mb-4">
+                <input type="text" name="phone_no" class="form-control" placeholder="Enter phone number" required>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
 
-    <form method="get">
-        <input type="text" name="phone_no" placeholder="Enter phone number" required>
-        <button type="submit">Search</button>
-    </form>
-
-    {% if user %}
-        <h2>Search Result:</h2>
-        <p><strong>ID:</strong> {{ user.id }}</p>
-        <img src="{{ user.image.url }}" width="250" height="250">
-        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Phone:</strong> {{ user.phone_no }}</p>
-        <img src="{% url 'qr-code' %}?id={{ user.id }}" alt="QR Code">
-    {% elif request.GET.phone_no %}
-        <p style="color: red;">No user found with that phone number.</p>
-
-    {% endif %}
-
+            {% if user %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h2 class="card-title">Search Result</h2>
+                        <img src="{{ user.image.url }}" class="img-thumbnail mb-3" width="250" height="250" alt="User Image">
+                        <p><strong>ID:</strong> {{ user.id }}</p>
+                        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Phone:</strong> {{ user.phone_no }}</p>
+                        <img src="{% url 'qr-code' %}?id={{ user.id }}" alt="QR Code" class="img-fluid mt-3">
+                    </div>
+                </div>
+            {% elif request.GET.phone_no %}
+                <div class="alert alert-danger mt-3" role="alert">
+                    No user found with that phone number.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
