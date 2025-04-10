@@ -1,71 +1,84 @@
 {% extends 'frontend/layout/app.html' %}
 
 {% block title %}
-
 Home
-
 {% endblock %}
 
-
 {% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2 class="mb-3">📷 Scan QR Code</h2>
+        <video id="live-webcam" width="40%" height="auto" class="rounded border shadow-sm" autoplay></video>
+        <br>
+        <button class="btn btn-primary mt-3" onclick="captureAndSendQR()">
+            <i class="bi bi-qr-code-scan"></i> Scan QR from Webcam
+        </button>
+    </div>
 
-    <h2>Scan QR Code</h2>
-    <video id="live-webcam" width="640" height="480" autoplay></video>
-    <br>
-    <button onclick="captureAndSendQR()">📷 Scan QR from Webcam</button>
+    <div id="result" class="mt-5"></div>
+</div>
 
-    <div id="result" style="margin-top: 20px;"></div>
+<script>
+    const video = document.getElementById("live-webcam");
 
-    <script>
-        const video = document.getElementById("live-webcam");
+    // Start webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            alert("Camera access denied: " + err);
+        });
 
-        // Start webcam
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
+    function captureAndSendQR() {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(blob => {
+            const formData = new FormData();
+            formData.append("image", blob, "frame.jpg");
+
+            fetch("{% url 'decode-qr' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
             })
-            .catch(err => {
-                alert("Camera access denied: " + err);
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById("result");
+
+                if (data.error) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger text-center" role="alert">
+                            ${data.error}
+                        </div>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="card shadow-sm p-4">
+                            <h4 class="mb-3 text-center text-success">✅ QR Scan Result</h4>
+                            <div class="row">
+                                <div class="col-md-4 text-center">
+                                    <img src="${data.image}" class="img-fluid rounded border" alt="QR Result Image">
+                                </div>
+                                <div class="col-md-8">
+                                    <p><strong>ID:</strong> ${data.id}</p>
+                                    <p><strong>Name:</strong> ${data.name}</p>
+                                    <p><strong>Email:</strong> ${data.email}</p>
+                                    <p><strong>Phone:</strong> ${data.phone}</p>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
             });
-
-        function captureAndSendQR() {
-            const canvas = document.createElement("canvas");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            canvas.toBlob(blob => {
-                const formData = new FormData();
-                formData.append("image", blob, "frame.jpg");
-
-                fetch("{% url 'decode-qr' %}", {
-                    method: "POST",
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        document.getElementById("result").innerHTML = `<p style="color:red;">${data.error}</p>`;
-                    } else {
-                        document.getElementById("result").innerHTML = `
-                            <h2>QR Scan Result</h2>
-                            <p><strong>ID:</strong> ${data.id}</p>
-                            <img src="${data.image}" width="250" height="250">
-                            <p><strong>Name:</strong> ${data.name}</p>
-                            <p><strong>Email:</strong> ${data.email}</p>
-                            <p><strong>Phone:</strong> ${data.phone}</p>
-                        `;
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                });
-            }, 'image/jpeg');
-        }
-    </script>
-
+        }, 'image/jpeg');
+    }
+</script>
 {% endblock %}
