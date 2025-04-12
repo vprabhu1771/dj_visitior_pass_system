@@ -1,5 +1,7 @@
 {% extends 'frontend/layout/app.html' %}
 
+{% load crispy_forms_tags %}
+
 {% block title %}
 
 User Registration
@@ -22,7 +24,7 @@ User Registration
 
     <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form|crispy }}
         <input type="submit" value="Register">
     </form>
 
